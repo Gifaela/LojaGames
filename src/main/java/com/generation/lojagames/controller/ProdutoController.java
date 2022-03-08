@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.generation.lojagames.modal.Produto;
+import com.generation.lojagames.model.Produto;
 import com.generation.lojagames.repository.CategoriaRepository;
 import com.generation.lojagames.repository.ProdutoRepository;
 
@@ -34,7 +34,7 @@ public class ProdutoController {
 	public CategoriaRepository categoriaRepository;
 	
 	
-	@GetMapping
+	@GetMapping("/all")
 	public ResponseEntity<List<Produto>>getAll(){
 		return ResponseEntity.ok(produtoRepository.findAll());
 	}

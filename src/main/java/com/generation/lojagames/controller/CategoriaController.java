@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.generation.lojagames.modal.Categoria;
+import com.generation.lojagames.model.Categoria;
 import com.generation.lojagames.repository.CategoriaRepository;
 
 @Controller

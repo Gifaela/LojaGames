@@ -1,4 +1,4 @@
-package com.generation.lojagames.modal;
+package com.generation.lojagames.model;
 
 import java.util.List;
 
