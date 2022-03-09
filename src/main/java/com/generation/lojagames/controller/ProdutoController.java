@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import com.generation.lojagames.model.Produto;
 import com.generation.lojagames.repository.CategoriaRepository;
 import com.generation.lojagames.repository.ProdutoRepository;
+import com.generation.lojagames.service.ProdutoService;
 
 @Controller
 @RequestMapping("/produtos")
@@ -32,6 +33,9 @@ public class ProdutoController {
 	
 	@Autowired
 	public CategoriaRepository categoriaRepository;
+	
+	@Autowired
+	public ProdutoService produtoService;
 	
 	
 	@GetMapping("/all")
@@ -48,6 +52,17 @@ public class ProdutoController {
 	@GetMapping("/nome/{nome}")
 	public ResponseEntity<List<Produto>>getAll(@PathVariable String nome){
 		return ResponseEntity.ok(produtoRepository.findAllByNomeContainingIgnoreCase(nome));
+	}
+	
+	@GetMapping("/preco_maior/{preco}")
+	public ResponseEntity<List<Produto>> getPrecoMaiorQue(@PathVariable BigDecimal preco){ 
+		return ResponseEntity.ok(produtoRepository.findByPrecoGreaterThanOrderByPreco(preco));
+	}
+	
+	
+	@GetMapping("/preco_menor/{preco}")
+	public ResponseEntity<List<Produto>> getPrecoMenorQue(@PathVariable BigDecimal preco){ 
+		return ResponseEntity.ok(produtoRepository.findByPrecoLessThanOrderByPrecoDesc(preco));
 	}
 	
 	@PostMapping
@@ -70,7 +85,7 @@ public class ProdutoController {
 		
 	}
 	
-	@DeleteMapping
+	@DeleteMapping("/{id}")
 	public ResponseEntity<?>deleteProduto(@PathVariable Long id){
 		return produtoRepository.findById(id)
 				.map(resposta -> {
@@ -80,15 +95,13 @@ public class ProdutoController {
 				.orElse(ResponseEntity.notFound().build());
 	}
 	
-	@GetMapping("/preco_maior/{preco}")
-	public ResponseEntity<List<Produto>> getPrecoMaiorQue(@PathVariable BigDecimal preco){ 
-		return ResponseEntity.ok(produtoRepository.findByPrecoGreaterThanOrderByPreco(preco));
-	}
-	
-	
-	@GetMapping("/preco_menor/{preco}")
-	public ResponseEntity<List<Produto>> getPrecoMenorQue(@PathVariable BigDecimal preco){ 
-		return ResponseEntity.ok(produtoRepository.findByPrecoLessThanOrderByPrecoDesc(preco));
+	@PutMapping("/curtir/{id}")
+	public ResponseEntity<Produto> curtirProdutoId (@PathVariable Long id){
+		
+		return produtoService.curtir(id)
+			.map(resposta-> ResponseEntity.ok(resposta))
+			.orElse(ResponseEntity.badRequest().build());
+				//resposta ? "OK":"Deu ruim!"
 	}
  
 }

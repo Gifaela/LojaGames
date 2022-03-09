@@ -2,16 +2,20 @@
 package com.generation.lojagames.service;
 
 import java.nio.charset.Charset;
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.Optional;
+
+import org.apache.commons.codec.binary.Base64;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.generation.lojagames.model.Usuario;
 import com.generation.lojagames.model.UsuarioLogin;
 import com.generation.lojagames.repository.UsuarioRepository;
-
-import org.apache.commons.codec.binary.Base64;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.stereotype.Service;
 
 @Service
 public class UsuarioService {
@@ -23,21 +27,45 @@ public class UsuarioService {
 
 		if (usuarioRepository.findByUsuario(usuario.getUsuario()).isPresent())
 			return Optional.empty();
+		
+		if (calcularIdade(usuario.getDataNascimento()) < 18)
+			throw new ResponseStatusException(
+					HttpStatus.BAD_REQUEST, "Usuário é menor de 18 anos", null);
+		
 		usuario.setSenha(criptografarSenha(usuario.getSenha()));
+		
 		return Optional.of(usuarioRepository.save(usuario));
 	}
 
 	public Optional<Usuario> atualizarUsuario(Usuario usuario) {
+		
 		if (usuarioRepository.findById(usuario.getId()).isPresent()) {
+			
+			Optional<Usuario> buscaUsuario = usuarioRepository.findByUsuario(usuario.getUsuario());
+			
+			if ( (buscaUsuario.isPresent()) && ( buscaUsuario.get().getId() != usuario.getId()))
+				throw new ResponseStatusException(
+						HttpStatus.BAD_REQUEST, "Usuário já existe!", null);
+			
+			if (calcularIdade(usuario.getDataNascimento()) < 18)
+				throw new ResponseStatusException(
+						HttpStatus.BAD_REQUEST, "Usuário é menor de 18 anos", null);
+			
+			usuario.setSenha(criptografarSenha(usuario.getSenha()));
+			
 			return Optional.ofNullable(usuarioRepository.save(usuario));
 		}
 		return Optional.empty();
 	}
 
 	public Optional<UsuarioLogin> autenticarUsuario(Optional<UsuarioLogin> usuarioLogin) {
+		
 		Optional<Usuario> usuario = usuarioRepository.findByUsuario(usuarioLogin.get().getUsuario());
+		
 		if (usuario.isPresent()) {
+			
 			if (compararSenhas(usuarioLogin.get().getSenha(), usuario.get().getSenha())) {
+				
 				usuarioLogin.get().setId(usuario.get().getId());
 				usuarioLogin.get().setNome(usuario.get().getNome());
 				usuarioLogin.get().setDataNascimento(usuario.get().getDataNascimento());
@@ -52,6 +80,12 @@ public class UsuarioService {
 
 		return Optional.empty();
 	}
+	
+	private int calcularIdade(LocalDate dataNascimento) {
+
+		return Period.between(dataNascimento, LocalDate.now()).getYears();
+	}
+
 
 	private String criptografarSenha(String senha) {
 
